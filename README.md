@@ -16,7 +16,7 @@ https://github.com/kksmiles/viatick-code-test-be
 ```
 npm install
 npm run build:tailwind
-npx expo start
+npx expo start -c
 ```
 
 Test the application on your IOS/Android Emulator.
