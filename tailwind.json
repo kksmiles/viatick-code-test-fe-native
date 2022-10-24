@@ -96,6 +96,16 @@
 			"marginTop": 8
 		}
 	},
+	"mt-8": {
+		"style": {
+			"marginTop": 32
+		}
+	},
+	"inline": {
+		"style": {
+			"display": "inline"
+		}
+	},
 	"flex": {
 		"style": {
 			"display": "flex"

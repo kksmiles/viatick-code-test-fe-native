@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DeviceApiService } from "../services/DeviceApiService";
-import { View, Text, Switch, Image } from "react-native";
+import { View, Text, Switch, Image, TouchableHighlight } from "react-native";
 import { useTailwind } from "tailwind-rn";
 
 interface IDeviceCardProps {
@@ -39,16 +39,31 @@ export default function DeviceCard({
             (isOn ? "bg-black text-white" : "bg-white text-black")
         )}
       >
-        <Image
+        <TouchableHighlight
+          onPress={() =>
+            navigation.push("DeviceDetails", {
+              name: device.name,
+              device: device,
+            })
+          }
+          activeOpacity={1}
+          underlayColor="transparent"
           style={{
-            width: 40,
-            height: 40,
-            tintColor: isOn ? "white" : "black",
-            marginTop: 8,
-            marginLeft: 8,
+            height: "50%",
           }}
-          source={images[device.icon]}
-        />
+        >
+          <Image
+            style={{
+              width: 40,
+              height: 40,
+              tintColor: isOn ? "white" : "black",
+              marginTop: 8,
+              marginLeft: 8,
+            }}
+            source={images[device.icon]}
+          />
+        </TouchableHighlight>
+
         <View style={tailwind("flex flex-row justify-between")}>
           <Text
             style={tailwind(

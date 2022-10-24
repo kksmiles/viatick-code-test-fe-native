@@ -149,7 +149,7 @@ export default function Weather({ navigation }) {
             }}
             onTouchStart={(e) => setTouchStart(e.nativeEvent.pageY)}
             onTouchEnd={(e) => {
-              if (touchStart - e.nativeEvent.pageY > 100) {
+              if (touchStart - e.nativeEvent.pageY > 50) {
                 console.log("swipe up");
                 navigation.navigate("HomeTabs", { screen: "DeviceList" });
               }

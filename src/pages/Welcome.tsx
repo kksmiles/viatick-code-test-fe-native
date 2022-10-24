@@ -62,7 +62,7 @@ export default function Welcome({ navigation }) {
             }}
             onTouchStart={(e) => setTouchStart(e.nativeEvent.pageX)}
             onTouchEnd={(e) => {
-              if (e.nativeEvent.pageX - touchStart > 100) {
+              if (e.nativeEvent.pageX - touchStart > 50) {
                 console.log("swipe right");
                 navigation.navigate("Weather");
               }

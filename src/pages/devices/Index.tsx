@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, Dimensions, ScrollView } from "react-native";
 import { useTailwind } from "tailwind-rn";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
 
 import Graph from "../../components/Graph";
 import DeviceCard from "../../components/DeviceCard";
@@ -12,6 +13,7 @@ import HomeHeader from "../../components/HomeHeader";
 
 export default function Index({ navigation }) {
   const screen = Dimensions.get("screen");
+  const isFocused = useIsFocused();
   const tailwind = useTailwind();
   let svc = new DeviceApiService();
   const [devices, setDevices] = useState<Device[]>([]);
@@ -24,16 +26,18 @@ export default function Index({ navigation }) {
     svc.getUserDevices("lucy-connor", (response: GetUserDevicesResponse) => {
       let devices: any = [];
       let deviceUserIds: any = [];
+      let onDevices: any = [];
       response.data.forEach((device) => {
         device["DeviceUser"]["deviceData"] = JSON.parse(
           JSON.parse(device["DeviceUser"]["deviceData"])
         );
         if (device["DeviceUser"]["deviceData"]["on"] == true) {
-          setDeviceCount(deviceCount + 1);
+          onDevices.push(device["DeviceUser"]["id"]);
         }
         deviceUserIds.push(device["DeviceUser"]["id"]);
         devices.push(device);
       });
+      setDeviceCount(onDevices.length);
       setDeviceUserIds(deviceUserIds);
       setDevices(devices);
     });
@@ -51,10 +55,12 @@ export default function Index({ navigation }) {
   };
 
   useEffect(() => {
-    getTempFromStorage();
-    getDevices();
+    if (isFocused) {
+      getTempFromStorage();
+      getDevices();
+    }
     return () => {};
-  }, []);
+  }, [isFocused]);
 
   return (
     <ScrollView>

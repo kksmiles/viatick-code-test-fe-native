@@ -83,6 +83,9 @@ export class Dial extends Component {
   updateAngle(gestureState) {
     let { deg, radius } = this.calcAngle(gestureState);
     if (deg < 0) deg += 360;
+    if (deg % 360 >= 120 && deg % 360 <= 300) {
+      return;
+    }
     if (Math.abs(this.state.angle - deg) > this.props.precision) {
       this.updateState({ deg, radius });
     }
@@ -170,10 +173,10 @@ const styles = StyleSheet.create({
     padding: 20, // needs a minimum
   },
   dial: {
-    width: 120,
-    height: 120,
+    width: 150,
+    height: 150,
     backgroundColor: "white",
-    borderRadius: 60,
+    borderRadius: 75,
     elevation: 5,
     shadowColor: GREY_LIGHT,
     shadowOffset: { width: 1, height: 2 },
@@ -183,9 +186,9 @@ const styles = StyleSheet.create({
   innerDialDecorator: {
     top: 10,
     left: 10,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     backgroundColor: "white",
     elevation: 3,
   },

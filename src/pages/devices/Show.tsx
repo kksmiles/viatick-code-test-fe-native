@@ -1,53 +1,81 @@
 import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Image } from "react-native";
 import { useTailwind } from "tailwind-rn";
 
 import StatusCard from "../../components/StatusCard";
-import Knob from "../../components/Knob";
+import { Dial } from "../../components/Dial";
 import { useEffect } from "react";
 import { DeviceApiService } from "../../services/DeviceApiService";
 
 export default function Show({ route, navigation }) {
+  const meterImage = require("../../../assets/images/meter.png");
   const { title, device } = route.params;
   const tailwind = useTailwind();
   let svc = new DeviceApiService();
-  const min = 0.13;
-  const max = 0.86;
-  const minTemp = 6;
-  const maxTemp = 34;
+  const [deviceData, setDeviceData] = useState({});
+  const [hadChange, setHadChange] = useState(false);
+  const [updateReady, setUpdateReady] = useState(false);
 
-  const [isOn, setIsOn] = useState(device.DeviceUser.deviceData.on);
-  const handleToggle = () => {
-    setIsOn(!isOn);
-    device.DeviceUser.deviceData.on = !isOn;
-    svc.updateDeviceData(device.id, device.DeviceUser.deviceData);
-  };
+  const MIN_TEMP = 10;
+  const MAX_TEMP = 30;
 
-  const convertToPercentage = (v: any) => {
-    return (v - minTemp) / (maxTemp - minTemp);
-  };
+  const MAX_RADIUS = 0;
+  const MIN_RADIUS = 0;
+  const DIF_RADIUS = MAX_RADIUS - MIN_RADIUS;
 
-  const convertToValue = (p: any) => {
-    return Math.round((maxTemp - minTemp) * p + minTemp);
-  };
+  let t = device.DeviceUser.deviceData.temperature;
+  let p = (100 * (t - MIN_TEMP)) / (MAX_TEMP - MIN_TEMP);
+  const initialAngle = (180 * (p + 50)) / 100;
 
-  const valueWithinLimits = (v: any) => Math.min(Math.max(v, min), max);
-  const [value, setValue] = useState(
-    convertToPercentage(device.DeviceUser.deviceData.temperature)
-  );
   const onChange = (p: any) => {
-    setValue(valueWithinLimits(p));
-    let v = convertToValue(value);
-    device.DeviceUser.deviceData.temperature = v;
+    setHadChange(true);
+    setUpdateReady(false);
+    setDeviceData({
+      ...deviceData,
+      temperature: Math.round((p * (MAX_TEMP - MIN_TEMP)) / 100 + MIN_TEMP),
+    });
   };
 
-  const onChangeEnd = (p: any) => {
-    svc.updateDeviceData(device.id, device.DeviceUser.deviceData);
+  const updateOnApi = () => {
+    if (hadChange && updateReady) {
+      svc.updateDeviceData(device.id, deviceData);
+      setHadChange(false);
+      setUpdateReady(false);
+    }
   };
 
   useEffect(() => {
+    updateOnApi();
+    setInterval(() => {
+      setUpdateReady(true);
+    }, 1000);
+  }, [updateReady, hadChange]);
+
+  useEffect(() => {
+    setDeviceData(device.DeviceUser.deviceData);
     return () => {};
   }, []);
+
+  const styles = StyleSheet.create({
+    responderStyle: {
+      elevation: 3,
+      shadowColor: "rgba(0,0,0,.7)",
+      shadowOffset: { width: 1, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      borderRadius: 500,
+    },
+    wheelWrapper: {
+      borderRadius: 120,
+      elevation: 5,
+      padding: 0,
+      shadowColor: "rgba(0,0,0,.7)",
+      shadowOffset: { width: 1, height: 1 },
+      shadowOpacity: 0.8,
+      shadowRadius: 10,
+      zIndex: 1,
+    },
+  });
 
   return (
     <View style={tailwind("bg-[#F7F7F7]")}>
@@ -71,36 +99,90 @@ export default function Show({ route, navigation }) {
           <Text style={tailwind("text-black font-bold")}>Statistic</Text>
         </View>
       </View>
+      {device.slug == "air-conditioner" && (
+        <View style={tailwind("flex justify-center items-center p-5 mt-8")}>
+          <View
+            style={{
+              transform: [{ rotate: "225deg" }],
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={meterImage}
+              style={{
+                width: 200,
+                height: 200,
+                resizeMode: "contain",
+                position: "absolute",
+                transform: [{ rotate: "135deg" }],
+              }}
+            />
 
-      <View style={tailwind("flex justify-center items-center p-5 mt-2")}>
-        {/* <View
-          style={{
-            width: 250,
-            height: 250,
-            borderRadius: 200,
-            // borderTopColor: "#DB9190",
-            // borderLeftColor: "#E5E5E5",
-            // borderRightColor: "#F7F7F7",
-            // borderBottomColor: "#F7F7F7",
-            borderWidth: 10,
-            borderStyle: "dotted",
-            transform: [{ rotate: "45deg" }],
-          }}
-        ></View> */}
-        <Knob />
-      </View>
+            <View
+              style={{
+                position: "absolute",
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: 270,
+                height: 260,
+                transform: [{ rotate: "135deg" }],
+              }}
+            >
+              <Text
+                style={{
+                  color: "#BBB",
+                }}
+              >
+                10°
+              </Text>
+              <Text
+                style={{
+                  color: "#BBB",
+                  alignSelf: "flex-start",
+                }}
+              >
+                20°
+              </Text>
+              <Text
+                style={{
+                  color: "#BBB",
+                }}
+              >
+                30°
+              </Text>
+            </View>
+
+            <Dial
+              initialAngle={initialAngle}
+              radiusMax={MAX_RADIUS}
+              radiusMin={MIN_RADIUS}
+              responderStyle={styles.responderStyle}
+              wrapperStyle={styles.wheelWrapper}
+              onValueChange={(a, r) => {
+                let angle = a % 360;
+                let percent = (angle * 100) / 180 - 50;
+                onChange(percent);
+              }}
+            />
+          </View>
+        </View>
+      )}
 
       <ScrollView style={tailwind("h-full overflow-y-auto")}>
         <View style={tailwind("p-3")}>
           <View style={tailwind("flex flex-row mt-5")}>
-            {Object.keys(device.DeviceUser.deviceData).map((key, index) => {
+            {Object.keys(deviceData).map((key, index) => {
               if (key != "on") {
                 return (
                   <StatusCard
                     key={index}
                     label={key}
                     value={
-                      device.DeviceUser.deviceData[key] +
+                      deviceData[key] +
                       (key == "temperature" ? "°" : "") +
                       (key == "humidity" ? "%" : "")
                     }
